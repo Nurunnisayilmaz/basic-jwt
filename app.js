@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const mongoose = require('mongoose');
 const port = 3000
 
 app.use(logger('dev'));
@@ -19,7 +20,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-const indexRouter = require('./routers/loginRouter');
+mongoose.connect('mongodb+srv://nisa:55785578nN@cluster0.vic2c.mongodb.net/jwtApi?retryWrites=true&w=majority', { useNewUrlParser: true });
+
+
+const indexRouter = require('./routes/router');
 app.use('/api', indexRouter)
 
 
