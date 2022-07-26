@@ -1,42 +1,65 @@
 const User = require('../model/userModel');
 const jwt = require('jsonwebtoken');
+const bcrypt = require("bcrypt");
 
 
 const register = async (req, res) => {
-    const {name,password} = req.body;
+    const body = req.body;
+
     try {
-        const data = await User({
-            name,
-            password
-        })
-        data.save();
-        return res.status(200).json({status: 'success',data:data})
+        const user = new User(body);
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+        user.save();
+
+        return res.status(200).json({status: 'success', user: user})
     } catch (e) {
         return res.status(404).json({code: 404, message: "Not Found", error: e})
     }
 }
 
-const login = async (req, res) => {
-    const {name,password} = req.body;
+const test = async (req, res) => {
     try {
-        const data = await User.findOne();
+        return res.status(200).json({status: 'success', message: "Jwt is Working"})
+    } catch (e) {
+        return res.status(404).json({code: 404, message: "Not Found", error: e})
+    }
+}
 
-        if(data===0){
+
+
+const login = async (req, res) => {
+    const {name, password} = req.body;
+    try {
+        const data = await User.findOne({name: name});
+
+        if (data === 0) {
             return res.status(404).json({message: "Not Found."});
         }
 
-            const token = jwt.sign({
+        const token = jwt.sign({
+            name: name,
+            id: data._id.toString()
+        }, 'secretKey')
 
-                name : name,
-                id : data._id.toString()
+        // update data by id
+        const updateData = await User.findOneAndUpdate({
+            _id: data._id.toString()
+        }, {
+            $set:
+                {
+                    token: token
+                }
+        })
 
-            },'secretKey')
+        return res.status(200).json({status: 'success', token: token})
 
-        return res.status(200).json({status: 'success'})
     } catch (e) {
+
         return res.status(404).json({code: 404, message: "Not Found", error: e})
+
     }
 }
 
 
-module.exports = {register,login};
+module.exports = {register, login, test};
