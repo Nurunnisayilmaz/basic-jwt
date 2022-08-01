@@ -37,10 +37,12 @@ const login = async (req, res) => {
             return res.status(404).json({message: "Not Found."});
         }
 
+        const jwtExpirySeconds = 120
+
         const token = jwt.sign({
             name: name,
             id: data._id.toString()
-        }, 'secretKey')
+        }, 'secretKey',{expiresIn: jwtExpirySeconds})
 
         // update data by id
         const updateData = await User.findOneAndUpdate({
